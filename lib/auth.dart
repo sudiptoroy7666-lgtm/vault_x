@@ -15,7 +15,7 @@ class AuthService extends ChangeNotifier {
   final SupabaseClient _supabase = Supabase.instance.client;
   final SecureStorageService _secure = SecureStorageService();
   final LocalAuthentication _localAuth = LocalAuthentication();
-
+  static const String _redirectUrl = 'https://sudiptoroy7666-lgtm.github.io/vaultx-auth/';
   // Session key lives in RAM only. Zeroed on lock/logout.
   Uint8List? _sessionKey;
   bool _isLoggedIn = false;
@@ -206,8 +206,22 @@ class AuthService extends ChangeNotifier {
 
   /// Unlocks the vault with the master password.
   /// Derives session key and stores it in RAM.
+  // ── Master password unlock ──────────────────────────────────────────────────
+
   Future<void> unlockWithMasterPassword(String masterPassword) async {
-    final saltBase64 = _user?.userMetadata?['master_salt'] as String?;
+    // ✅ FIX: Force a fresh session refresh from Supabase to guarantee
+    // userMetadata (master_salt) is not stale from local cache.
+    final res = await _supabase.auth.refreshSession();
+    final freshUser = res.session?.user;
+
+    if (freshUser == null) {
+      throw const AuthException('Session expired. Please login again.');
+    }
+
+    // Update local state with the fresh user
+    _user = freshUser;
+
+    final saltBase64 = freshUser.userMetadata?['master_salt'] as String?;
     if (saltBase64 == null) {
       throw const AuthException('Master salt not found. Please re-register.');
     }
@@ -217,9 +231,8 @@ class AuthService extends ChangeNotifier {
     final masterKey = await CryptoService.deriveKey(masterPassword, salt);
 
     // Derive session key.
-    final sessionId = _user!.id;
-    final newSessionKey = await CryptoService.deriveSessionKey(
-        masterKey, sessionId);
+    final sessionId = freshUser.id;
+    final newSessionKey = await CryptoService.deriveSessionKey(masterKey, sessionId);
 
     // Zero master key immediately.
     CryptoService.zeroMemory(masterKey);
@@ -289,7 +302,11 @@ class AuthService extends ChangeNotifier {
       _sessionKey = null;
     }
     _vaultUnlocked = false;
-    ClipboardHelper.clear();
+
+    // ✅ FIX: REMOVED ClipboardHelper.clear() from here.
+    // Wiping the clipboard on lock prevents the user from switching apps to paste
+    // the password. The 30-second timer in ClipboardHelper will securely wipe it.
+
     notifyListeners();
   }
 
@@ -300,7 +317,7 @@ class AuthService extends ChangeNotifier {
     lock(); // zeros session key and clears clipboard
 
     // Clear all hardware-backed storage.
-    await _secure.deleteAll();
+    await _secure.delete(SecureKeys.lastSyncTime);
 
     // Supabase signOut also revokes the refresh token server-side.
     await _supabase.auth.signOut();
@@ -308,6 +325,36 @@ class AuthService extends ChangeNotifier {
     _isLoggedIn = false;
     _user = null;
     notifyListeners();
+  }
+
+  // ── Email Verification ─────────────────────────────────────────────────────
+
+  /// Resends the Supabase signup confirmation email.
+  Future<void> resendVerificationEmail(String email) async {
+    try {
+      await _supabase.auth.resend(
+        type: OtpType.signup,
+        email: email,
+        emailRedirectTo: _redirectUrl, // ✅ Added this
+      );
+    } catch (e) {
+      log.w('Resend verification failed: $e');
+      throw AuthException('Could not resend email. Please try again later.');
+    }
+  }
+
+  // ── Password Reset ─────────────────────────────────────────────────────────
+
+  /// Sends a password reset link to the user's email.
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _supabase.auth.resetPasswordForEmail(email,
+        redirectTo: _redirectUrl, // ✅ Added this
+      );
+    } catch (e) {
+      log.w('Password reset request failed: $e');
+      throw AuthException('Could not send reset email. Check the address and try again.');
+    }
   }
 
   // ── Device ID ───────────────────────────────────────────────────────────────
