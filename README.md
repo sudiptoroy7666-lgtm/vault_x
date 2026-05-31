@@ -1,242 +1,229 @@
-# 🛡️ VaultX
-### Zero-Knowledge Password Manager — Android & Windows
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Flutter-3.x-blue?logo=flutter" alt="Flutter">
-  <img src="https://img.shields.io/badge/Platform-Android%20%7C%20Windows-green" alt="Platform">
-  <img src="https://img.shields.io/badge/Encryption-AES--256--GCM-blue" alt="Encryption">
-  <img src="https://img.shields.io/badge/KDF-Argon2id-purple" alt="KDF">
-  <img src="https://img.shields.io/badge/Backend-Supabase-3ECF8E?logo=supabase" alt="Supabase">
-  <img src="https://img.shields.io/badge/License-Apache%202.0-orange" alt="License">
-</p>
+# VaultX 🔐
 
-VaultX is a **strictly offline-first, zero-knowledge password manager** built with Flutter. Designed for users who demand absolute control over their cryptographic keys, VaultX ensures that the server (Supabase) **never sees plaintext data, never stores your Master Password, and cannot recover your vault** if you forget your credentials.
+> **Zero-Knowledge Password Manager for Android & Windows**
+> *Your passwords. Your keys. Your device. Nobody else — not even us — can read them.*
 
-> ⚠️ **SECURITY WARNING — BY DESIGN:** Loss of Master Password = **permanent, irrecoverable data loss**. There is no reset link, no recovery key, and no support team that can decrypt your data. This is a feature, not a bug.
+[![Platform](https://img.shields.io/badge/platform-Android%20|%20Windows-1E3A5F)]()
+[![Flutter](https://img.shields.io/badge/Flutter-3.11+-02569B?logo=flutter)]()
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Security](https://img.shields.io/badge/Encryption-AES--256--GCM-green)]()
+[![KDF](https://img.shields.io/badge/KDF-Argon2id-green)]()
+[![Backend](https://img.shields.io/badge/Backend-Supabase%20RLS-3ECF8E?logo=supabase)]()
 
 ---
 
-## 📑 Table of Contents
-- [Platform Support](#-platform-support)
-- [Core Features](#-core-features)
-- [Security Architecture](#-security-architecture)
-- [Cross-Platform Sync](#-cross-platform-sync-the-both-architecture)
-- [Export & Import System](#-export--import-system)
-- [Tech Stack](#️-tech-stack)
-- [Project Structure](#-project-structure)
-- [Getting Started](#-getting-started)
-- [Build & Distribution](#-build--distribution)
-- [Testing](#-testing)
-- [Hard Rules](#️-hard-rules-for-contributors--auditors)
-- [License](#-license)
+## 📖 Table of Contents
+
+1. [Overview](#-overview)
+2. [Core Features](#-core-features)
+3. [Security Architecture](#-security-architecture)
+4. [Cryptographic Flow](#-cryptographic-flow)
+5. [Data Model](#-data-model)
+6. [Platform Feature Matrix](#-platform-feature-matrix)
+7. [Project Structure](#-project-structure)
+8. [Tech Stack](#-tech-stack)
+9. [Getting Started](#-getting-started)
+10. [Supabase Setup](#-supabase-setup)
+11. [Building for Release](#-building-for-release)
+12. [Testing](#-testing)
+13. [Security Hard Rules](#-security-hard-rules)
+14. [Known Limitations](#-known-limitations)
+15. [License](#-license)
 
 ---
 
-## 📱 Platform Support
+## 🌟 Overview
 
-| Platform | Status | Security Features |
-| :--- | :---: | :--- |
-| **Android** | ✅ Fully Supported | StrongBox HSM, Biometrics, `FLAG_SECURE` screenshot blocking, Root detection |
-| **Windows** | ✅ Fully Supported | TPM 2.0 / Credential Manager, Windows Hello, Partial screenshot protection |
-| **iOS / macOS** | ❌ Out of Scope | Not in v7.1 specification |
-| **Web / Linux** | ❌ Out of Scope | Not in v7.1 specification |
+**VaultX** is a fully offline-first, zero-knowledge password manager built with Flutter. Unlike traditional password managers, VaultX encrypts **every single sensitive field independently** on your device *before* any data ever touches SQLite or Supabase. The server never sees plaintext — not your passwords, not your usernames, not even your site names.
 
----
+Designed for users who demand absolute control over their cryptographic keys, VaultX features seamless cross-platform sync, portable disaster recovery backups, and hardware-backed key storage.
 
-## ✨ Core Features
-
-### 🔐 Two-Tier Security Model
-- **Master Password** (15–128 chars): Derives the `session_key` that encrypts metadata (site name, URL, username, notes, category).
-- **Vault PIN** (6+ digits): Derives the `vault_key` that encrypts the **actual passwords**. Passwords are masked in the vault list and require PIN entry to reveal.
-
-### 🚫 Auto-Wipe Protection
-10 consecutive failed Vault PIN attempts trigger a **permanent cryptographic wipe**:
-- Local SQLite database is destroyed
-- Hardware-backed secure storage is cleared
-- User is signed out of Supabase
-- A permanent "Vault Wiped" screen is shown
-
-### 🌐 End-to-End Encrypted Sync
-- **Offline-first**: All data lives in local SQLite (Drift ORM)
-- **Silent Last-Write-Wins**: Background sync to Supabase on login with zero conflict UI
-- **Soft Deletes**: Deleted entries are marked with tombstones to prevent offline devices from resurrecting them
-
-### 🛡️ Breach Detection
-- Integrates with **HaveIBeenPwned v3** using k-anonymous SHA-1 prefix checking
-- Only the first 5 hex characters of the SHA-1 hash ever leave the device
-- Breached entries are flagged with a red badge in the vault list
-
-### 🎲 Intelligent Password Generator
-Three tiers with `zxcvbn` strength validation:
-| Tier | Length | Minimum Score | Rules |
-| :--- | :---: | :---: | :--- |
-| **Strong** | 15 chars | 2 | ≥2 chars from each class |
-| **Very Strong** | 20 chars | 3 | Full charset, no ambiguous chars (0/O, l/1/I) |
-| **Maximum** | 24 chars | 4 | ≥3 chars from each class |
-
-All generation uses **FortunaRandom** (cryptographically secure) — `dart:math` is strictly banned.
-
-### 🔍 Instant Full-Text Search
-In-memory searching of decrypted site names with zero performance impact on the UI thread.
-
-### 🧹 Deep Clean Tool
-One-click factory reset that wipes local SQLite, Secure Storage, and Supabase session without destroying the cloud backup.
+> ⚠️ **SECURITY WARNING — BY DESIGN:** 
+> **Loss of Master Password = permanent, irrecoverable data loss.** There is no reset link, no recovery key, and no support team that can decrypt your data. This is a feature, not a bug.
 
 ---
 
-## 🔒 Security Architecture
+## ⚡ Core Features
 
-VaultX does not use SQLCipher or full-database encryption. Instead, it employs **Application-Layer Per-Field Encryption** to ensure that even if the local SQLite file or the Supabase Postgres database is compromised, the attacker only sees isolated, useless ciphertext blobs.
+### 🔒 Security-First & Zero-Knowledge
+- **Per-field AES-256-GCM encryption** — every sensitive field has its own unique 12-byte `FortunaRandom` nonce.
+- **Argon2id KDF** (memory-hard) running in Dart Isolates to prevent UI blocking. Standardized at 32MB memory cost across all platforms for deterministic cross-platform sync.
+- **HKDF-SHA256** session key derivation.
+- **Hardware-backed key storage** (Android StrongBox HSM / Windows TPM 2.0 via Credential Manager).
+- **Constant-time comparison** for PIN and key verification to prevent timing attacks.
+- **FFI-based memory zeroing** of keys immediately after cryptographic operations.
 
-### Cryptographic Primitives
-| Component | Algorithm | Implementation |
-| :--- | :--- | :--- |
-| **KDF** | Argon2id | `argon2` package in Dart Isolate (adaptive memory: 32MB baseline) |
-| **Symmetric Encryption** | AES-256-GCM | `cryptography` package, per-field with fresh 12-byte nonces |
-| **Key Derivation** | HKDF-SHA256 | `cryptography` package for session keys |
-| **Randomness** | FortunaRandom | `pointycastle` package — `dart:math` is banned |
-| **Memory Zeroing** | FFI Arena | Deterministic overwrite via `calloc` immediately after use |
-| **Hash Comparison** | Constant-Time | `constantTimeEquals()` for all PIN/key comparisons |
-| **Hardware Backing** | Keystore / TPM | `flutter_secure_storage` with StrongBox on Android, Credential Manager on Windows |
+### 🔄 Cross-Platform Sync & "Both" PIN Architecture
+- **Offline-first** architecture with local SQLite (Drift ORM).
+- **Last-write-wins conflict resolution** via Supabase Postgres with soft-delete tombstones.
+- **Cross-Platform PIN Sync:** Vault PIN salts are stored locally in the hardware keystore *and* encrypted with the session key and backed up to Supabase metadata. If you log into a new device or the OS wipes your keystore, the app silently restores your PIN salts using your Master Password.
+- **Row Level Security (RLS)** strictly enforced on all Supabase tables.
 
-### Per-Field Encryption Schema
-Every sensitive field is encrypted independently with its own nonce:
+### 🧳 Data Portability & Disaster Recovery
+- **Portable Encrypted Backup (`.vltx`):** Exports your entire vault into a standalone, encrypted JSON file. Completely independent of Supabase; survives server outages and can be imported on any device.
+- **Plaintext CSV Export/Import:** Standardized format for migrating to/from other password managers (Bitwarden, 1Password, KeePass).
+- **Native Android 13+ SAF Integration:** Uses the native Storage Access Framework "Save As" dialog to bypass Scoped Storage restrictions without requiring invasive file permissions.
+- **Deep Clean & Account Deletion:** Granular controls to wipe local device cache or permanently nuke server-side data.
 
-```
-EncryptedEntry
-├── id (UUID, plaintext for indexing)
-├── site_name_nonce + site_name_cipher   (AES-256-GCM with session_key)
-├── site_url_nonce + site_url_cipher     (AES-256-GCM with session_key)
-├── username_nonce + username_cipher     (AES-256-GCM with session_key)
-├── password_nonce + password_cipher     (AES-256-GCM with vault_key) ⭐
-├── notes_nonce + notes_cipher           (AES-256-GCM with session_key)
-├── category_nonce + category_cipher     (AES-256-GCM with session_key)
-└── Plaintext metadata: isFavourite, isBreached, createdAt, modifiedAt, deviceId, syncPending, deleted
+### 🧠 Password Intelligence & UX
+- **In-Memory Full-Text Search:** Instantly filter your vault by site name using a decrypted RAM cache (zero UI thread blocking).
+- **3-tier password generator** (Strong / Very Strong / Maximum) with Fisher-Yates shuffling via `FortunaRandom`.
+- **`zxcvbn` strength scoring** with visual feedback.
+- **HaveIBeenPwned k-anonymous breach check** — only the first 5 SHA-1 prefix characters leave the device.
+
+### 🛡️ Threat Mitigation
+- **Screenshot & screen recording blocking** (Android `FLAG_SECURE`, best-effort on Windows).
+- **Root / jailbreak detection** (soft warning on Android).
+- **10-attempt PIN wipe** — vault is cryptographically destroyed after repeated failures.
+- **30-second auto-clipboard clear** after copying passwords.
+
+---
+
+## 🏗️ Security Architecture
+
+```mermaid
+graph TD
+    subgraph "📱 User Device (Trusted Zone)"
+        A[User Input<br/>Master Password / PIN] --> B[Argon2id<br/>Isolate, 32MB]
+        B --> C[master_key]
+        C --> D[HKDF-SHA256]
+        D --> E[session_key<br/>RAM only]
+        C --> F[zeroMemory via FFI]
+        
+        E --> G[AES-256-GCM<br/>per-field encryption]
+        G --> H[nonce_i + cipher_i]
+    end
+    
+    subgraph "💾 Local Storage"
+        H --> I[(SQLite / Drift<br/>encrypted blobs only)]
+        K[Flutter Secure Storage] -.->|PIN hash & salts| K
+    end
+    
+    subgraph "☁️ Supabase (Untrusted Zone)"
+        H -->|hex-encoded| L[(vault_entries<br/>RLS-protected)]
+        M[user_metadata] -.->|master_salt + enc_pin_salts| M
+    end
+    
+    style A fill:#e3f2fd
+    style F fill:#ffebee
+    style L fill:#fff9c4
+    style K fill:#e8f5e9
 ```
 
-### Memory Safety
-- All keys (`master_key`, `session_key`, `vault_key`) are deterministically overwritten with zeros via **FFI** immediately after use
-- Keys are held in RAM only during the brief window needed for cryptographic operations
-- `AppLifecycleState.hidden` and `detached` trigger automatic vault locking
+### The Zero-Knowledge Guarantee
+
+| Data | Where it lives | Encrypted? |
+|------|----------------|-----------|
+| Passwords, usernames, site names, URLs, notes | Device RAM → SQLite → Supabase | ✅ AES-256-GCM (per-field) |
+| Master key | RAM only (zeroed after HKDF) | N/A |
+| Session key | RAM only (zeroed on lock) | N/A |
+| Argon2id master salt | Supabase `user_metadata` | ❌ (not secret — just a salt) |
+| Vault PIN salts | Local HSM + Supabase (encrypted by session key) | ✅ Hardware-backed + AES-GCM |
+| `is_favourite`, `is_breached`, timestamps | SQLite + Supabase | ❌ (non-sensitive metadata) |
 
 ---
 
-## 🔄 Cross-Platform Sync: The "Both" Architecture
+## 🔐 Cryptographic Flow
 
-VaultX uses an innovative **"Both" architecture** for Vault PIN salts that balances offline accessibility with seamless cross-device sync.
-
-### The Challenge
-- The Vault PIN salt must be stored **locally** for instant offline access
-- But if the OS wipes the hardware keystore (common on Android/Windows updates), the user is locked out of all synced passwords
-- Storing the salt **only** in Supabase would destroy offline accessibility
-
-### The Solution
+### 1. Master Password & Session Key
+```text
+master_password (15-128 chars)
+    ↓
+Argon2id(password, salt=16 bytes, t=3, p=4, m=32MB, out=32B)  [in Isolate]
+    ↓
+master_key
+    ↓
+HKDF-SHA256(master_key, user_id, "vaultx-session-v1")
+    ↓
+session_key (32 bytes, lives in RAM)
+    ↓
+zeroMemory(master_key)  [via FFI]
 ```
-┌─────────────────────┐         ┌─────────────────────┐
-│   Local Hardware    │         │   Supabase Cloud    │
-│   Keystore / TPM    │         │   (Encrypted Backup)│
-│                     │         │                     │
-│ • pin_hash          │         │ • enc_pin_hash      │
-│ • pin_salt          │◄───────►│ • enc_pin_salt      │ (encrypted with
-│ • vault_key_salt    │  sync   │ • enc_vault_key_salt│  session_key)
-│                     │         │                     │
-└─────────────────────┘         └─────────────────────┘
+
+### 2. Portable Backup Crypto (`.vltx`)
+To ensure backups survive Supabase outages, the export process decrypts data from the local DB and re-encrypts it with a user-provided Export Password.
+```text
+1. User provides Export Password + Vault PIN
+2. Decrypt password fields from DB using vault_key
+3. Decrypt metadata fields from DB using session_key
+4. Derive export_key = Argon2id(export_password, export_salt)
+5. Re-encrypt ALL fields using export_key
+6. Save to .vltx JSON file
 ```
 
-1. **Normal Operation**: App reads salts from local hardware storage (instant, offline)
-2. **OS Wipe Recovery**: If local storage is empty, app silently downloads encrypted salts from Supabase, decrypts them with the `session_key`, and restores to local hardware
-3. **Zero-Knowledge**: Supabase only sees the salts **encrypted with your `session_key`** — they cannot decrypt them without your Master Password
+---
 
-### Argon2id Cross-Platform Unification
-Both Android and Windows use a unified **32MB memory parameter** for Argon2id. This ensures that the same Master Password + salt always produces the same cryptographic key on both platforms, enabling seamless cross-device decryption.
+## 📊 Data Model
+
+### `EncryptedEntry` Schema (SQLite & Supabase)
+
+| Column | Type | Encrypted |
+|--------|------|-----------|
+| `id` | UUID (PK) | ❌ |
+| `site_name_nonce` / `site_name_cipher` | BLOB | ✅ (session_key) |
+| `site_url_nonce` / `site_url_cipher` | BLOB | ✅ (session_key) |
+| `username_nonce` / `username_cipher` | BLOB | ✅ (session_key) |
+| `password_nonce` / `password_cipher` | BLOB | ✅ (**vault_key**) |
+| `notes_nonce` / `notes_cipher` | BLOB | ✅ (session_key) |
+| `category_nonce` / `category_cipher` | BLOB | ✅ (session_key) |
+| `is_favourite`, `is_breached`, `deleted` | BOOLEAN | ❌ |
+| `created_at`, `modified_at` | DATETIME | ❌ |
+| `device_id`, `sync_pending` | TEXT/BOOL | ❌ |
 
 ---
 
-## 📦 Export & Import System
+## 🖥️ Platform Feature Matrix
 
-### 🔐 Encrypted Backup (`.vltx` Portable Format)
-A truly portable backup format that **survives Supabase outages**:
-
-**Export Flow:**
-1. User enters **Vault PIN** (to decrypt passwords into RAM)
-2. User creates an **Export Password** (15+ chars)
-3. All fields are decrypted and re-encrypted with the Export Password
-4. Saved as a standalone JSON file with embedded Argon2id salt
-
-**Import Flow:**
-1. User selects `.vltx` file and enters **Export Password**
-2. User enters current **Vault PIN** (to encrypt passwords into the new DB)
-3. Entries are decrypted from the file and re-encrypted with the current account's keys
-4. New UUIDs are generated and entries sync to Supabase
-
-**Result:** The backup file is **completely independent** of the original Supabase account and can be restored on any device, even if Supabase permanently shuts down.
-
-### 📄 Plaintext CSV Export/Import
-Standard CSV format compatible with Bitwarden, 1Password, KeePass, and other password managers. Includes a strict security warning requiring user acknowledgement before export.
-
-### 📁 Platform-Specific Save Paths
-- **Android**: Uses the native Storage Access Framework (SAF) "Save As" dialog — works perfectly on Android 13+ with Scoped Storage
-- **Windows**: Opens the native Windows "Save As" dialog, defaulting to the Downloads folder
+| Feature | Android | Windows |
+|---------|:-------:|:-------:|
+| **Biometric unlock** | ✅ Fingerprint | ✅ Windows Hello |
+| **Screenshot blocking** | ✅ `FLAG_SECURE` | ⚠️ Partial (Win32 FFI) |
+| **Secure key storage** | ✅ StrongBox HSM | ✅ Credential Manager + TPM |
+| **Root/jailbreak detection** | ✅ Soft check | ❌ N/A |
+| **Clipboard auto-clear (30s)** | ✅ | ✅ (best-effort) |
+| **Native "Save As" (SAF)** | ✅ Scoped Storage compliant | ✅ Native Dialog |
+| **SQLite ≥ 3.50.2 enforcement** | ✅ | ✅ |
 
 ---
 
-## 🛠️ Tech Stack
+## 📁 Project Structure
 
-| Category | Technology |
-| :--- | :--- |
-| **Framework** | Flutter (Dart) |
-| **State Management** | `Provider` + `ChangeNotifier` |
-| **Local Database** | `Drift` (SQLite ORM) + `sqlite3_flutter_libs` (≥ 3.50.2) |
-| **Backend / Auth** | Supabase (Auth, Postgres, Row Level Security) |
-| **Cryptography** | `cryptography`, `argon2`, `pointycastle`, `ffi` |
-| **Navigation** | `go_router` (declarative routing with redirect guards) |
-| **Secure Storage** | `flutter_secure_storage` (StrongBox / TPM backed) |
-| **Biometrics** | `local_auth` (Fingerprint / Windows Hello) |
-| **Password Strength** | `zxcvbn` |
-| **HTTP Client** | `http` with manual certificate pinning for HIBP |
-| **File Operations** | `file_picker` with Storage Access Framework |
-| **Logging** | `logger` (no `print()` or `debugPrint()` allowed) |
-
----
-
-## 📂 Project Structure
-
-```
+```text
 vault_x/
 ├── lib/
-│   ├── main.dart                 # App entry, Supabase init, SQLite version check
-│   ├── app.dart                  # MaterialApp, GoRouter, Material 3 theme
-│   ├── auth.dart                 # Supabase Auth, session management, biometric unlock
-│   ├── crypto.dart               # Argon2id, AES-GCM, HKDF, FortunaRandom, FFI zeroing
-│   ├── models.dart               # VaultEntry (plaintext), EncryptedEntry (encrypted)
-│   ├── storage.dart              # Drift schema, SecureStorageService
-│   ├── sync.dart                 # Supabase CRUD, offline queue, last-write-wins
-│   ├── generator.dart            # Password generator, zxcvbn, HIBP k-anon check
-│   ├── export_import.dart        # .vltx and CSV export/import service
-│   ├── utils.dart                # Clipboard helper, exceptions, hex utilities
-│   ├── platform.dart             # Platform-specific features (screenshots, root detect)
+│   ├── main.dart                  # App entry, Supabase init, SQLite check
+│   ├── app.dart                   # GoRouter, Material 3 theme
+│   │
+│   ├── crypto.dart                # Argon2id, AES-GCM, HKDF, FortunaRandom, FFI zeroing
+│   ├── models.dart                # VaultEntry (RAM) + EncryptedEntry (DB)
+│   ├── storage.dart               # Drift schema, SecureStorageService
+│   ├── auth.dart                  # Supabase Auth, Cross-platform PIN sync
+│   ├── sync.dart                  # Supabase CRUD, offline queue, last-write-wins
+│   ├── export_import.dart         # .vltx and CSV portable backup logic
+│   ├── generator.dart             # Password gen, zxcvbn, HIBP k-anon check
+│   ├── utils.dart                 # Clipboard, exceptions, hex helpers
+│   ├── platform.dart              # Screenshot block, root detect, lifecycle
+│   │
 │   └── screens/
-│       ├── login.dart            # Email + password login
-│       ├── register.dart         # Registration with zxcvbn scoring
-│       ├── setup_master.dart     # Master password setup with no-recovery warning
-│       ├── setup_pin.dart        # Vault PIN setup with immutability warning
-│       ├── unlock.dart           # Master password unlock screen
-│       ├── vault_list.dart       # Main vault list with search and filter
-│       ├── add_edit_entry.dart   # Add/edit entry with inline generator
-│       ├── pin_gate.dart         # Modal PIN prompt with attempt counter
-│       ├── reveal.dart           # 30s countdown password reveal
-│       ├── settings.dart         # Settings with Deep Clean tool
-│       ├── export_dialog.dart    # Export format selection dialog
-│       └── import_screen.dart    # Import file picker screen
+│       ├── login.dart / register.dart / verify_email.dart / forgot_password.dart
+│       ├── setup_master.dart / setup_pin.dart / unlock.dart
+│       ├── vault_list.dart        # Main vault + In-memory search
+│       ├── add_edit_entry.dart    # Add/edit with inline generator
+│       ├── pin_gate.dart          # PIN modal + 10-attempt wipe
+│       ├── reveal.dart            # 30s password reveal
+│       ├── settings.dart          # Preferences, Deep Clean, Delete Account
+│       ├── export_dialog.dart     # Native SAF export UI
+│       └── import_screen.dart     # Portable backup import UI
+│
 ├── test/
-│   ├── crypto_test.dart          # 10 mandatory cryptographic tests
-│   └── integration_test.dart     # Full end-to-end flow test
-├── android/                      # Android native configuration
-├── windows/                      # Windows native configuration
-├── assets/icon/                  # App icons (1024x1024 PNG)
-├── config/supabase.sql           # Database schema and RLS policies
-├── installer.iss                 # Inno Setup script for Windows installer
-└── pubspec.yaml                  # Dependencies and configuration
+│   ├── crypto_test.dart           # 10 mandatory crypto tests
+│   └── integration_test.dart      # Full E2E flow
+│
+├── config/
+│   └── supabase.sql               # Schema + RLS policies
+├── installer.iss                  # Inno Setup script for Windows .exe installer
+└── pubspec.yaml
 ```
 
 ---
@@ -244,192 +231,128 @@ vault_x/
 ## 🚀 Getting Started
 
 ### Prerequisites
-1. **Flutter SDK** (Latest Stable, 3.x)
-2. **Supabase Account** with a new project
-3. **Android Studio** (for Android builds)
-4. **Visual Studio 2022** with C++ Desktop Development workload (for Windows builds)
+- Flutter SDK ≥ 3.11.1
+- Android Studio (for Android build)
+- Visual Studio 2022 with C++ Desktop workload (for Windows build)
+- A [Supabase](https://supabase.com) account
 
-### 1. Clone the Repository
+### Installation
+
 ```bash
-git clone https://github.com/yourusername/vault_x.git
+# 1. Clone the repository
+git clone https://github.com/YOUR-USERNAME/vault_x.git
 cd vault_x
-```
 
-### 2. Supabase Configuration
-1. Create a new project at [supabase.com](https://supabase.com)
-2. Navigate to **SQL Editor** and run the contents of `config/supabase.sql`
-   - Creates `profiles` and `vault_entries` tables
-   - Enables **Row Level Security (RLS)** on all tables
-   - Adds owner-only policies and performance indexes
-3. Go to **Authentication → URL Configuration** and add your redirect URL for email verification
-
-### 3. Environment Variables
-Create a `.env` file in the project root:
-
-```env
-SUPABASE_URL=https://your-project-ref.supabase.co
-SUPABASE_ANON_KEY=your-anon-key-here
-```
-
-> ⚠️ Never commit `.env` to version control. It's already in `.gitignore`.
-
-### 4. Install Dependencies
-```bash
+# 2. Install dependencies
 flutter pub get
-```
 
-### 5. Generate Drift Code
-```bash
+# 3. Generate Drift code
 dart run build_runner build --delete-conflicting-outputs
-```
 
-### 6. Run the App
-```bash
-# Android
-flutter run -d android
+# 4. Create your .env file
+cat > .env << EOF
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key-here
+EOF
 
-# Windows
-flutter run -d windows
+# 5. Run on your device
+flutter run
 ```
 
 ---
 
-## 📦 Build & Distribution
+## 🗄️ Supabase Setup
 
-### Production Builds
-Both platforms **must** be built with obfuscation and split debug info to prevent reverse engineering:
+1. **Create a new Supabase project.**
+2. **Deploy the schema:** Run `config/supabase.sql` in the Supabase SQL Editor. This creates the `vault_entries` table and enables strict Row Level Security (RLS).
+3. **Configure Email Auth:** Go to **Authentication → Providers → Email** and enable "Confirm email".
+4. **Configure URL Redirects:** Go to **Authentication → URL Configuration** and add your GitHub Pages redirect URL (e.g., `https://username.github.io/vaultx-auth/`) for email verification and password resets.
 
-**Android APK:**
+---
+
+## 📦 Building for Release
+
+> ⚠️ **Never distribute debug binaries.** Release builds enforce obfuscation and R8 minification.
+
+### Android APK / AAB
 ```bash
-flutter build apk --release --obfuscate --split-debug-info=build/debug-info
+flutter build apk --release --obfuscate --split-debug-info=./debug-info
 ```
 
-**Android App Bundle (Play Store):**
-```bash
-flutter build appbundle --release --obfuscate --split-debug-info=build/debug-info
-```
-
-**Windows:**
-```bash
-flutter build windows --release --obfuscate --split-debug-info=build/debug-info
-```
-
-### Windows Installer (Inno Setup)
-1. Download [Inno Setup Compiler](https://jrsoftware.org/isdl.php)
-2. Right-click `installer.iss` → **Compile**
-3. Find `VaultX_Setup_v1.0.0.exe` in the `installer_output` folder
-
-The installer includes:
-- Native Windows installation experience
-- Start Menu and Desktop shortcuts
-- Clean uninstaller in "Add/Remove Programs"
-- Custom app icon branding
+### Windows Executable & Installer
+1. Build the obfuscated Windows binary:
+   ```bash
+   flutter build windows --release --obfuscate --split-debug-info=./debug-info
+   ```
+2. **Create the Installer:** Download [Inno Setup](https://jrsoftware.org/isdl.php), open the `installer.iss` file in the root directory, and press `Ctrl+F9` to compile. This generates a professional `VaultX_Setup.exe` in the `installer_output` folder.
 
 ### App Icons
-Custom icons are generated using `flutter_launcher_icons`:
-
+VaultX uses `flutter_launcher_icons`. Place your `app_icon.png` and `app_icon_foreground.png` in `assets/icon/` and run:
 ```bash
 dart run flutter_launcher_icons
 ```
-
-Configuration in `pubspec.yaml`:
-- Android: Adaptive icons with `#1E3A5F` background
-- Windows: 256x256 High-DPI `.ico` file
 
 ---
 
 ## 🧪 Testing
 
-### Mandatory Cryptographic Tests
-VaultX includes 10 non-negotiable cryptographic tests. **No code should be merged if these fail.**
-
+### Mandatory Crypto Tests
 ```bash
 flutter test test/crypto_test.dart
 ```
+*All 10 tests must pass before any release. Tests include nonce uniqueness, GCM tampering detection, Isolate non-blocking, and FFI memory zeroing.*
 
-| # | Test | Pass Condition |
-| :--- | :--- | :--- |
-| 1 | Nonce uniqueness | 1000 nonces — all unique, all exactly 12 bytes |
-| 2 | Round-trip | `decrypt(encrypt(p, k), k)` equals original plaintext |
-| 3 | Wrong key | `AuthenticationException` thrown with different key |
-| 4 | Tampered ciphertext | `AuthenticationException` after single bit flip |
-| 5 | Nonce freshness | Two encryptions produce different nonces |
-| 6 | Memory zero | All bytes equal 0 after `zeroMemory()` |
-| 7 | Session key determinism | Same inputs → same key; different sessionId → different key |
-| 8 | zxcvbn gate | 'password' scores 0, 'correct-horse-battery-staple' scores 4 |
-| 9 | DoS guard | 14-char and 129-char passwords throw `ValidationException` |
-| 10 | Isolate non-blocking | UI microtasks continue during `deriveKey()` |
-
-### End-to-End Integration Tests
+### Integration Test
 ```bash
 flutter test integration_test
 ```
-
-Tests the full user flow: Register → Master Password Setup → PIN Setup → Add Entry → Sync → Lock → Relaunch → Restore.
+*Full flow: register → set PIN → save entry → sync → lock → relaunch → restore.*
 
 ---
 
-## ⚠️ Hard Rules (For Contributors & Auditors)
+## 🚫 Security Hard Rules
 
-Violating any of these rules produces a **security vulnerability** or a **broken build**.
+These rules are enforced throughout the codebase. Violating any produces a security vulnerability.
 
 ### Cryptography
-1. ❌ **NEVER** use `dart:math` `Random` — FortunaRandom only
-2. ❌ **NEVER** reuse a nonce — `encrypt()` generates its own internally
-3. ❌ **NEVER** use `==` for PIN or key comparison — `constantTimeEquals()` always
-4. ❌ **NEVER** store plaintext for sensitive fields (passwords, usernames, URLs, notes, categories)
-5. ❌ **NEVER** log secrets, keys, nonces, or PINs — use `logger` package only
-6. ✅ **ALWAYS** call `zeroMemory()` via FFI on every `Uint8List` key immediately after use
-7. ✅ **ALWAYS** run Argon2id in a Dart `Isolate` — never on the UI thread
-8. ✅ **ALWAYS** enforce 15 ≤ password.length ≤ 128 before calling `deriveKey()`
+- ❌ **NEVER** use `dart:math.Random` — `FortunaRandom` only.
+- ❌ **NEVER** reuse a nonce — `encrypt()` generates its own.
+- ❌ **NEVER** use `==` for PIN/key comparison — `constantTimeEquals()` always.
+- ❌ **NEVER** store plaintext for sensitive fields.
+- ❌ **NEVER** log secrets, keys, nonces, or PINs.
+- ✅ **ALWAYS** `zeroMemory()` every key after use.
+- ✅ **ALWAYS** run Argon2id in a Dart Isolate.
+- ✅ **ALWAYS** enforce 15 ≤ password ≤ 128 before hashing.
+- ✅ **ALWAYS** use identical Argon2id memory parameters (32MB) across all platforms to ensure cross-platform sync compatibility.
 
-### Platform
-9. ❌ **NEVER** call `root_detect` or `flutter_windowmanager` on Windows — `Platform.isAndroid` guard required
-10. ❌ **NEVER** use `share_plus` for file operations — `file_picker` only
-
-### Storage & Sync
-11. ❌ **NEVER** store master key or session key in SharedPreferences, Hive, or SQLite
-12. ❌ **NEVER** add a PIN reset or Master Password recovery path — immutable by design
-13. ✅ **ALWAYS** enable RLS on all Supabase tables before any user connects
-14. ✅ **ALWAYS** verify SQLite ≥ 3.50.2 at startup — refuse vault open if below (CVE-2025-6965)
-
-### Build
-15. ❌ **NEVER** hardcode Supabase URL or anon key — use `--dart-define` or `.env` only
-16. ❌ **NEVER** send full SHA-1 to HIBP — first 5 hex chars only
-17. ❌ **NO** `print()` or `debugPrint()` anywhere — `logger` package only
-18. ✅ **ALWAYS** build with `--obfuscate --split-debug-info` for releases
-19. ✅ Android release: `debuggable=false`, `minifyEnabled=true`, `shrinkResources=true`
+### Platform & Storage
+- ❌ **NEVER** call `root_detect` or `flutter_windowmanager` on Windows.
+- ❌ **NEVER** store master/session key in SharedPreferences, Hive, or SQLite.
+- ❌ **NEVER** add a PIN reset or recovery path (PIN is immutable by design).
+- ✅ **ALWAYS** enable RLS on all Supabase tables.
+- ✅ **ALWAYS** verify SQLite ≥ 3.50.2 at startup.
 
 ---
 
-## 📸 Screenshots
+## ⚠️ Known Limitations
 
-| Login Screen | Vault List | PIN Gate | Password Generator |
-| :---: | :---: | :---: | :---: |
-| ![Login](assets/screenshots/login.png) | ![Vault](assets/screenshots/vault_list.png) | ![PIN](assets/screenshots/pin_gate.png) | ![Generator](assets/screenshots/generator.png) |
+These are **intentional design tradeoffs** documented for transparency:
 
----
-
-## 🤝 Contributing
-
-Contributions are welcome, but **all PRs must**:
-1. Pass all 10 cryptographic tests
-2. Pass the integration test on both Android and Windows
-3. Achieve `flutter analyze` with zero errors and zero warnings
-4. Adhere to all Hard Rules listed above
-5. Not introduce any packages from the banned list (Firebase, SQLCipher, Riverpod, BLoC, etc.)
+1. **No password recovery.** Loss of Master Password = permanent data loss.
+2. **No SQLCipher.** Per-field AES-256-GCM provides application-layer confidentiality. Schema and SQLite temp files are not encrypted — accepted risk on single-user devices.
+3. **Windows screenshot protection is partial.** Win32 FFI cannot block all GPU-level capture tools.
+4. **Last-write-wins sync.** No conflict resolution UI. Acceptable for single-user.
+5. **No TOTP 2FA.** Replaced by Supabase email OTP for simplicity.
+6. **No browser extension or autofill.** Out of scope for v1.0.
 
 ---
 
-## 📄 License
 
-This project is licensed under the **Apache 2.0 License** — see the [LICENSE](LICENSE) file for details.
+<div align="center">
 
-**Disclaimer:** The authors of VaultX are not responsible for data loss resulting from forgotten Master Passwords or lost hardware. The cryptographic design intentionally prevents anyone, including the developers, from recovering your data.
+**Built with 🔒 and paranoia.**
 
----
+*If you can read your passwords in the database, you're doing it wrong.*
 
-<p align="center">
-  <strong>VaultX v7.1</strong> — May 2026<br>
-  <em>Zero-Knowledge. Offline-First. Uncompromising Security.</em>
-</p>
+</div>
+```
