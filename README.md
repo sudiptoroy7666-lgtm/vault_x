@@ -1,10 +1,3 @@
-Here is the final, comprehensive, and fully updated `README.md` for your completed **VaultX** project. It includes all the advanced features we built, the strict security architecture, and the deployment workflows. 
-
-You can copy and paste this directly into your GitHub repository.
-
-***
-
-```markdown
 # VaultX 🔐
 
 > **Zero-Knowledge Password Manager for Android & Windows**
@@ -115,7 +108,7 @@ graph TD
     style F fill:#ffebee
     style L fill:#fff9c4
     style K fill:#e8f5e9
-```
+    
 
 ### The Zero-Knowledge Guarantee
 
