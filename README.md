@@ -1,3 +1,4 @@
+```markdown
 # VaultX 🔐
 
 > **Zero-Knowledge Password Manager for Android & Windows**
@@ -23,7 +24,7 @@
 7. [Project Structure](#-project-structure)
 8. [Tech Stack](#-tech-stack)
 9. [Getting Started](#-getting-started)
-10. [Supabase Setup](#-supabase-setup)
+10. [Supabase & Auth Redirect Setup](#-supabase--auth-redirect-setup)
 11. [Building for Release](#-building-for-release)
 12. [Testing](#-testing)
 13. [Security Hard Rules](#-security-hard-rules)
@@ -108,7 +109,7 @@ graph TD
     style F fill:#ffebee
     style L fill:#fff9c4
     style K fill:#e8f5e9
-    
+```
 
 ### The Zero-Knowledge Guarantee
 
@@ -260,18 +261,32 @@ flutter run
 
 ---
 
-## 🗄️ Supabase Setup
+## 🗄️ Supabase & Auth Redirect Setup
 
-1. **Create a new Supabase project.**
-2. **Deploy the schema:** Run `config/supabase.sql` in the Supabase SQL Editor. This creates the `vault_entries` table and enables strict Row Level Security (RLS).
-3. **Configure Email Auth:** Go to **Authentication → Providers → Email** and enable "Confirm email".
-4. **Configure URL Redirects:** Go to **Authentication → URL Configuration** and add your GitHub Pages redirect URL (e.g., `https://username.github.io/vaultx-auth/`) for email verification and password resets.
+VaultX uses a **web-based redirect** (hosted on GitHub Pages) to handle email verification and password resets seamlessly across Android and Windows without complex deep linking.
+
+### 1. Deploy the Database Schema
+Run `config/supabase.sql` in the Supabase SQL Editor. This creates the `vault_entries` table and enables strict Row Level Security (RLS).
+
+### 2. Configure Email Auth
+Go to **Authentication → Providers → Email** and enable "Confirm email".
+
+### 3. Setup the GitHub Pages Redirect App
+1. Create a new public GitHub repository named `vaultx-auth`.
+2. Create an `index.html` file that handles Supabase URL hash fragments (`#type=signup`, `#type=recovery`) and displays the appropriate UI ("Link Verified ✅" or "Set New Password").
+3. Enable **GitHub Pages** in the repository settings (Deploy from `main` branch).
+4. Your live URL will look like: `https://sudiptoroy7666-lgtm.github.io/vaultx-auth/`
+
+### 4. Link Supabase to the Redirect App
+Go to **Authentication → URL Configuration** in Supabase:
+- **Site URL:** `https://sudiptoroy7666-lgtm.github.io/vaultx-auth/`
+- **Redirect URLs:** Add `https://sudiptoroy7666-lgtm.github.io/vaultx-auth/**`
 
 ---
 
 ## 📦 Building for Release
 
-> ⚠️ **Never distribute debug binaries.** Release builds enforce obfuscation and R8 minification.
+> ⚠️ **Never distribute debug binaries.** Release builds enforce obfuscation and R8 minification to protect the Dart bytecode.
 
 ### Android APK / AAB
 ```bash
@@ -285,8 +300,10 @@ flutter build apk --release --obfuscate --split-debug-info=./debug-info
    ```
 2. **Create the Installer:** Download [Inno Setup](https://jrsoftware.org/isdl.php), open the `installer.iss` file in the root directory, and press `Ctrl+F9` to compile. This generates a professional `VaultX_Setup.exe` in the `installer_output` folder.
 
-### App Icons
-VaultX uses vector SVGs converted to native assets. For Android, ensure your `mipmap` folders are correctly populated in `android/app/src/main/res/`. For Windows, replace `windows/runner/resources/app_icon.ico`.
+### App Icons (Vector Workflow)
+VaultX uses vector SVGs converted to native assets via [IconKitchen](https://icon.kitchen/) to ensure pixel-perfect rendering on all DPI scales.
+- **Android:** Native `mipmap` folders are populated in `android/app/src/main/res/`.
+- **Windows:** High-DPI `app_icon.ico` is placed in `windows/runner/resources/`.
 
 ---
 
@@ -348,8 +365,19 @@ These are **intentional design tradeoffs** documented for transparency:
 This project is licensed under the **Apache License 2.0** — see the [LICENSE](LICENSE) file for details.
 
 ```text
-VaultX v7.1 | June 2026 | Apache 2.0
-Loss of Master Password = permanent data loss by design.
+Copyright 2026 Sudipto Roy
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 ```
 
 ---
