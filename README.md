@@ -1,4 +1,4 @@
-```markdown
+
 # VaultX 🔐
 
 > **Zero-Knowledge Password Manager for Android & Windows**
@@ -20,16 +20,14 @@
 3. [Security Architecture](#-security-architecture)
 4. [Cryptographic Flow](#-cryptographic-flow)
 5. [Data Model](#-data-model)
-6. [Platform Feature Matrix](#-platform-feature-matrix)
-7. [Project Structure](#-project-structure)
-8. [Tech Stack](#-tech-stack)
-9. [Getting Started](#-getting-started)
-10. [Supabase & Auth Redirect Setup](#-supabase--auth-redirect-setup)
-11. [Building for Release](#-building-for-release)
-12. [Testing](#-testing)
-13. [Security Hard Rules](#-security-hard-rules)
-14. [Known Limitations](#-known-limitations)
-15. [License](#-license)
+6. [Project Structure](#-project-structure)
+7. [Tech Stack](#-tech-stack)
+8. [Getting Started](#-getting-started)
+9. [Supabase & Auth Redirect Setup](#-supabase--auth-redirect-setup)
+10. [Building for Release](#-building-for-release)
+11. [Testing](#-testing)
+12. [Security Hard Rules](#-security-hard-rules)
+13. [License](#-license)
 
 ---
 
@@ -173,20 +171,6 @@ To ensure backups survive Supabase outages, the export process decrypts data fro
 
 ---
 
-## 🖥️ Platform Feature Matrix
-
-| Feature | Android | Windows |
-|---------|:-------:|:-------:|
-| **Biometric unlock** | ✅ Fingerprint | ✅ Windows Hello |
-| **Screenshot blocking** | ✅ `FLAG_SECURE` | ⚠️ Partial (Win32 FFI) |
-| **Secure key storage** | ✅ StrongBox HSM | ✅ Credential Manager + TPM |
-| **Root/jailbreak detection** | ✅ Soft check | ❌ N/A |
-| **Clipboard auto-clear (30s)** | ✅ | ✅ (best-effort) |
-| **Native "Save As" (SAF)** | ✅ Scoped Storage compliant | ✅ Native Dialog |
-| **SQLite ≥ 3.50.2 enforcement** | ✅ | ✅ |
-
----
-
 ## 📁 Project Structure
 
 ```text
@@ -273,14 +257,16 @@ Go to **Authentication → Providers → Email** and enable "Confirm email".
 
 ### 3. Setup the GitHub Pages Redirect App
 1. Create a new public GitHub repository named `vaultx-auth`.
-2. Create an `index.html` file that handles Supabase URL hash fragments (`#type=signup`, `#type=recovery`) and displays the appropriate UI ("Link Verified ✅" or "Set New Password").
+2. Create an `index.html` file that handles Supabase URL hash fragments (`#type=signup`, `#type=recovery`) and displays the appropriate UI:
+   - **For Signups:** Displays "Link Verified ✅ Your secure link was accepted."
+   - **For Recovery:** Displays a "Set New Password" form.
 3. Enable **GitHub Pages** in the repository settings (Deploy from `main` branch).
-4. Your live URL will look like: `https://sudiptoroy7666-lgtm.github.io/vaultx-auth/`
+4. Your live URL will look like: `https://your-username.github.io/vaultx-auth/`
 
 ### 4. Link Supabase to the Redirect App
 Go to **Authentication → URL Configuration** in Supabase:
-- **Site URL:** `https://sudiptoroy7666-lgtm.github.io/vaultx-auth/`
-- **Redirect URLs:** Add `https://sudiptoroy7666-lgtm.github.io/vaultx-auth/**`
+- **Site URL:** `https://your-username.github.io/vaultx-auth/`
+- **Redirect URLs:** Add `https://your-username.github.io/vaultx-auth/**`
 
 ---
 
@@ -299,11 +285,6 @@ flutter build apk --release --obfuscate --split-debug-info=./debug-info
    flutter build windows --release --obfuscate --split-debug-info=./debug-info
    ```
 2. **Create the Installer:** Download [Inno Setup](https://jrsoftware.org/isdl.php), open the `installer.iss` file in the root directory, and press `Ctrl+F9` to compile. This generates a professional `VaultX_Setup.exe` in the `installer_output` folder.
-
-### App Icons (Vector Workflow)
-VaultX uses vector SVGs converted to native assets via [IconKitchen](https://icon.kitchen/) to ensure pixel-perfect rendering on all DPI scales.
-- **Android:** Native `mipmap` folders are populated in `android/app/src/main/res/`.
-- **Windows:** High-DPI `app_icon.ico` is placed in `windows/runner/resources/`.
 
 ---
 
@@ -362,10 +343,10 @@ These are **intentional design tradeoffs** documented for transparency:
 
 ## 📄 License
 
-This project is licensed under the **Apache License 2.0** — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **Apache License 2.0**.
 
 ```text
-Copyright 2026 Sudipto Roy
+Copyright [yyyy] [name of copyright owner]
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
