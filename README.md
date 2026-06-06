@@ -96,9 +96,9 @@ Designed for users who demand absolute control over their cryptographic keys, Va
   <img src="https://github.com/sudiptoroy7666-lgtm/portfolio/blob/main/assets/screenshots/vaultx/v11.png?raw=true" width="16%"/>
 </p>
 <p align="center">
-   <img src="https://github.com/sudiptoroy7666-lgtm/portfolio/blob/main/assets/screenshots/vaultx/Screenshot%202026-06-06%20115510.png?raw=true" width="16%"/>
-  <img src="https://github.com/sudiptoroy7666-lgtm/portfolio/blob/main/assets/screenshots/vaultx/Screenshot%202026-06-06%20115429.png?raw=true" width="16%"/>
-  <img src="https://github.com/sudiptoroy7666-lgtm/portfolio/blob/main/assets/screenshots/vaultx/Screenshot%202026-05-30%20161859.png?raw=true" width="16%"/>
+   <img src="https://github.com/sudiptoroy7666-lgtm/portfolio/blob/main/assets/screenshots/vaultx/Screenshot%202026-06-06%20115510.png?raw=true" width="24%"/>
+  <img src="https://github.com/sudiptoroy7666-lgtm/portfolio/blob/main/assets/screenshots/vaultx/Screenshot%202026-06-06%20115429.png?raw=true" width="24%"/>
+  <img src="https://github.com/sudiptoroy7666-lgtm/portfolio/blob/main/assets/screenshots/vaultx/Screenshot%202026-05-30%20161859.png?raw=true" width="24%"/>
 </p>
 
 *Last 3 screenshots show the Windows version of VaultX*
