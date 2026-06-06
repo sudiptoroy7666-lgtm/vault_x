@@ -78,6 +78,28 @@ Designed for users who demand absolute control over their cryptographic keys, Va
 
 ---
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="https://github.com/sudiptoroy7666-lgtm/portfolio/blob/main/assets/screenshots/vaultx/v6.png?raw=true" width="16%"/>
+  <img src="https://github.com/sudiptoroy7666-lgtm/portfolio/blob/main/assets/screenshots/vaultx/v7.png?raw=true" width="16%"/>
+  <img src="https://github.com/sudiptoroy7666-lgtm/portfolio/blob/main/assets/screenshots/vaultx/v1.jpg?raw=true" width="16%"/>
+  <img src="https://github.com/sudiptoroy7666-lgtm/portfolio/blob/main/assets/screenshots/vaultx/v2.jpg?raw=true" width="16%"/>
+  <img src="https://github.com/sudiptoroy7666-lgtm/portfolio/blob/main/assets/screenshots/vaultx/v3.jpg?raw=true" width="16%"/>
+  <img src="https://github.com/sudiptoroy7666-lgtm/portfolio/blob/main/assets/screenshots/vaultx/v4.png?raw=true" width="16%"/>
+</p>
+<p align="center">
+  <img src="https://github.com/sudiptoroy7666-lgtm/portfolio/blob/main/assets/screenshots/vaultx/v5.png?raw=true" width="16%"/>
+  <img src="https://github.com/sudiptoroy7666-lgtm/portfolio/blob/main/assets/screenshots/vaultx/v8.png?raw=true" width="16%"/>
+  <img src="https://github.com/sudiptoroy7666-lgtm/portfolio/blob/main/assets/screenshots/vaultx/v9.jpg?raw=true" width="16%"/>
+  <img src="https://github.com/sudiptoroy7666-lgtm/portfolio/blob/main/assets/screenshots/vaultx/v10.jpg?raw=true" width="16%"/>
+  <img src="https://github.com/sudiptoroy7666-lgtm/portfolio/blob/main/assets/screenshots/vaultx/v11.png?raw=true" width="16%"/>
+</p>
+
+
+---
+
+
 ## 🏗️ Security Architecture
 
 ```mermaid
