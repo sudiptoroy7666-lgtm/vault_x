@@ -27,7 +27,6 @@
 10. [Building for Release](#-building-for-release)
 11. [Testing](#-testing)
 12. [Security Hard Rules](#-security-hard-rules)
-13. [License](#-license)
 
 ---
 
@@ -368,34 +367,6 @@ These are **intentional design tradeoffs** documented for transparency:
 6. **No browser extension or autofill.** Out of scope for v1.0.
 
 ---
-
-## 📄 License
-
-This project is licensed under the **Apache License 2.0**.
-
-```text
-Copyright [yyyy] [name of copyright owner]
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-```
-
----
-
-<div align="center">
-
-**Built with 🔒 and paranoia.**
-
-*If you can read your passwords in the database, you're doing it wrong.*
 
 </div>
 ```
