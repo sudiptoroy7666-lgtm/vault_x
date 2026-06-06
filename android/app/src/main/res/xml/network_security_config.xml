@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Block all cleartext HTTP across the app -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <!-- Trust only system CAs — no user-added certificates -->
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Certificate pinning for HIBP endpoint -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">api.pwnedpasswords.com</domain>
+        <pin-set>
+            <!--
+                SHA-256 SPKI hashes for api.pwnedpasswords.com
+                Verify current hashes at: https://ssl-tools.net or https://www.ssllabs.com
+                Update these before each release if the certificate has rotated.
+            -->
+            <pin digest="SHA-256">YLh1dUR9y6Kja30RrAn7JKnbQG/uEtLMkBgFF2Fuihg=</pin>
+            <!-- Backup pin -->
+            <pin digest="SHA-256">Vjs8r4z+80wjNcr1YKepWQboSIRi63WsWXhIMN+eWys=</pin>
+        </pin-set>
+    </domain-config>
+</network-security-config>
