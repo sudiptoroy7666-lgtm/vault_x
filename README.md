@@ -101,6 +101,8 @@ Designed for users who demand absolute control over their cryptographic keys, Va
   <img src="https://github.com/sudiptoroy7666-lgtm/portfolio/blob/main/assets/screenshots/vaultx/Screenshot%202026-05-30%20161859.png?raw=true" width="16%"/>
 </p>
 
+*Last 3 screenshots show the Windows version of VaultX*
+
 ---
 
 
